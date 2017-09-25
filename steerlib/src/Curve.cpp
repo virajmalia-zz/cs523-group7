@@ -45,19 +45,13 @@ void Curve::drawCurve(Color curveColor, float curveThickness, int window)
 {
 #ifdef ENABLE_GUI
 
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
-	{
-		std::cerr << "ERROR>>>>Member function drawCurve is not implemented!" << std::endl;
-		flag = true;
-	}
-	//=========================================================================
-
 	// Robustness: make sure there is at least two control point: start and end points
+	if(!checkRobust())
+		return;
 	// Move on the curve from t=0 to t=finalPoint, using window as step size, and linearly interpolate the curve points
+
 	// Note that you must draw the whole curve at each frame, that means connecting line segments between each two points on the curve
-	
+
 	return;
 #endif
 }
@@ -65,14 +59,8 @@ void Curve::drawCurve(Color curveColor, float curveThickness, int window)
 // Sort controlPoints vector in ascending order: min-first
 void Curve::sortControlPoints()
 {
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
-	{
-		std::cerr << "ERROR>>>>Member function sortControlPoints is not implemented!" << std::endl;
-		flag = true;
-	}
-	//=========================================================================
+	// Sort controlPoints{position(x,y,z), tanget(x,y,z), time}
+
 
 	return;
 }
@@ -110,31 +98,24 @@ bool Curve::calculatePoint(Point& outputPoint, float time)
 // Check Roboustness
 bool Curve::checkRobust()
 {
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
-	{
-		std::cerr << "ERROR>>>>Member function checkRobust is not implemented!" << std::endl;
-		flag = true;
-	}
-	//=========================================================================
-
-
-	return true;
+	return controlPoints.size() < 2 ? false : true;
 }
 
 // Find the current time interval (i.e. index of the next control point to follow according to current time)
 bool Curve::findTimeInterval(unsigned int& nextPoint, float time)
 {
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
-	{
-		std::cerr << "ERROR>>>>Member function findTimeInterval is not implemented!" << std::endl;
-		flag = true;
+	if( time > controlPoints[0].time && time < controlPoints[1].time){								//time between cp[0] --- cp[1], nextPoint=1
+		nextPoint = 1;
 	}
-	//=========================================================================
-
+	else if(time > controlPoints[1].time && time < controlPoints[2].time){					//time between cp[1] --- cp[2]
+		nextPoint = 2;
+	}
+	else if(time > controlPoints[2].time && time < controlPoints[3].time){					//time between cp[2] --- cp[3]
+		nextPoint = 3;
+	}
+	else{
+		return false;
+	}
 
 	return true;
 }
@@ -164,18 +145,19 @@ Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 {
 	Point newPosition;
-
-	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
-	if (!flag)
-	{
-		std::cerr << "ERROR>>>>Member function useCatmullCurve is not implemented!" << std::endl;
-		flag = true;
-	}
-	//=========================================================================
+	Point p0 = controlPoints[0].position,
+				p1 = controlPoints[1].position,
+				p2 = controlPoints[2].position,
+				p3 = controlPoints[3].position;
 
 	// Calculate position at t = time on Catmull-Rom curve
-	
+	newPosition = 0.5 * (
+		2*p1 +
+		(p2-p0)*time +
+		(2*p0 - 5*p1 + 4*p2 - p3)*pow(time,2) +
+		(p3 - 3*p2 + 3*p1 - p0)*pow(time,3)
+	)
+
 	// Return result
 	return newPosition;
 }
