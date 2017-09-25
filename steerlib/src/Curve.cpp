@@ -61,7 +61,8 @@ void Curve::sortControlPoints()
 {
 	// Sort controlPoints{position(x,y,z), tanget(x,y,z), time}
 
-
+	//Might need to add comparing function - Jack
+	std::sort(controlPoints.begin(), controlPoints.end());
 	return;
 }
 
@@ -103,7 +104,7 @@ bool Curve::checkRobust()
 
 // Find the current time interval (i.e. index of the next control point to follow according to current time)
 bool Curve::findTimeInterval(unsigned int& nextPoint, float time)
-{
+{	
 	if( time > controlPoints[0].time && time < controlPoints[1].time){								//time between cp[0] --- cp[1], nextPoint=1
 		nextPoint = 1;
 	}
@@ -117,6 +118,37 @@ bool Curve::findTimeInterval(unsigned int& nextPoint, float time)
 		return false;
 	}
 
+	//We might need a general function that handles multiple points (more than 3). -Jack
+	//Below is the binary search
+	//unsigned int low = 0, 
+	//	mid, 
+	//	high = controlPoints.size() -1;
+
+	//while (low <= high)
+	//{
+	//	mid = (low + high) / 2;
+	//	if (controlPoints[mid].time == time)
+	//	{
+	//		nextPoint = mid + 1;
+	//		return true;
+	//	}
+
+	//	else if (controlPoints[mid].time < time)
+	//	{
+	//		low = mid + 1;
+	//	}
+	//	else
+	//	{
+	//		high = mid - 1;
+	//	}
+	//}
+	//
+	//if (low >= controlPoints.size())
+	//{
+	//	return false;
+	//}
+
+	//nextPoint = low;
 	return true;
 }
 
@@ -126,13 +158,29 @@ Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 	Point newPosition;
 	float normalTime, intervalTime;
 
+	const unsigned int curPoint = nextPoint - 1;
+	intervalTime = controlPoints[nextPoint].time - controlPoints[curPoint].time;
+	normalTime = (time - controlPoints[curPoint].time) / intervalTime;
+
+	const float t = normalTime;
+	const float t2 = t*t;
+	const float t3 = t*t*t;
+
+	//Formula: p = (2t3 - 3t2 + 1)p0 + (t3 - 2t2 +t)m0 + (-2t3 + 3t2)p1 + (t3 - t2)m1
+
+	newPosition = (2 * t3 - 3 * t2 + 1) * controlPoints[curPoint].position +
+		(t3 - 2 * t2 + t) * controlPoints[curPoint].tangent +
+		(-2 * t3 + 3 * t2) * controlPoints[nextPoint].position +
+		(t3 - t2) * controlPoints[nextPoint].tangent;
+
+
 	//================DELETE THIS PART AND THEN START CODING===================
-	static bool flag = false;
+	/*static bool flag = false;
 	if (!flag)
 	{
 		std::cerr << "ERROR>>>>Member function useHermiteCurve is not implemented!" << std::endl;
 		flag = true;
-	}
+	}*/
 	//=========================================================================
 
 	// Calculate position at t = time on Hermite curve
@@ -144,6 +192,14 @@ Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 // Implement Catmull-Rom curve
 Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 {
+	/*
+	Should use parameter nextPoint and handle begin, end points - Jack
+	0 = nextPoint - 2;
+	1 = nextPoint - 1;
+	2 = nextPoint;
+	3 = nextPoint + 1;
+	*/
+
 	Point newPosition;
 	Point p0 = controlPoints[0].position,
 				p1 = controlPoints[1].position,
@@ -152,11 +208,11 @@ Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 
 	// Calculate position at t = time on Catmull-Rom curve
 	newPosition = 0.5 * (
-		2*p1 +
-		(p2-p0)*time +
-		(2*p0 - 5*p1 + 4*p2 - p3)*pow(time,2) +
-		(p3 - 3*p2 + 3*p1 - p0)*pow(time,3)
-	)
+		2 * p1 +
+		(p2 - p0)*time +
+		(2 * p0 - 5 * p1 + 4 * p2 - p3)*pow(time, 2) +
+		(p3 - 3 * p2 + 3 * p1 - p0)*pow(time, 3)
+		);
 
 	// Return result
 	return newPosition;
