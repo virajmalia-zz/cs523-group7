@@ -40,6 +40,8 @@ namespace Util {
 		Point position;
 		Vector tangent;
 		float time;
+
+		bool operator<(const CurvePoint &pt) const { return time < pt.time; }
 	};
 
 	/* Class for implementing an animation curve. From within any module, class or function, a Curve object can be created.

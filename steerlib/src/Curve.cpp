@@ -52,6 +52,19 @@ void Curve::drawCurve(Color curveColor, float curveThickness, int window)
 
 	// Note that you must draw the whole curve at each frame, that means connecting line segments between each two points on the curve
 
+	float t_cur = controlPoints[0].time + (float)window;
+
+	Point p_prev = controlPoints[0].position;
+	Point p_i;
+
+	while (t_cur <= controlPoints[controlPoints.size() - 1].time)
+	{
+		calculatePoint(p_i, t_cur);
+		DrawLib::drawLine(p_prev, p_i, curveColor, curveThickness);
+		p_prev = p_i;
+		t_cur = t_cur + window;
+	}
+
 	return;
 #endif
 }
@@ -65,6 +78,7 @@ void Curve::sortControlPoints()
 	std::sort(controlPoints.begin(), controlPoints.end());
 	return;
 }
+
 
 // Calculate the position on curve corresponding to the given time, outputPoint is the resulting position
 // Note that this function should return false if the end of the curve is reached, or no next point can be found
@@ -105,51 +119,31 @@ bool Curve::checkRobust()
 // Find the current time interval (i.e. index of the next control point to follow according to current time)
 bool Curve::findTimeInterval(unsigned int& nextPoint, float time)
 {	
-	if( time > controlPoints[0].time && time < controlPoints[1].time){								//time between cp[0] --- cp[1], nextPoint=1
-		nextPoint = 1;
-	}
-	else if(time > controlPoints[1].time && time < controlPoints[2].time){					//time between cp[1] --- cp[2]
-		nextPoint = 2;
-	}
-	else if(time > controlPoints[2].time && time < controlPoints[3].time){					//time between cp[2] --- cp[3]
-		nextPoint = 3;
-	}
-	else{
-		return false;
-	}
-
-	//We might need a general function that handles multiple points (more than 3). -Jack
-	//Below is the binary search
-	//unsigned int low = 0, 
-	//	mid, 
-	//	high = controlPoints.size() -1;
-
-	//while (low <= high)
-	//{
-	//	mid = (low + high) / 2;
-	//	if (controlPoints[mid].time == time)
-	//	{
-	//		nextPoint = mid + 1;
-	//		return true;
-	//	}
-
-	//	else if (controlPoints[mid].time < time)
-	//	{
-	//		low = mid + 1;
-	//	}
-	//	else
-	//	{
-	//		high = mid - 1;
-	//	}
+	//if( time > controlPoints[0].time && time < controlPoints[1].time){								//time between cp[0] --- cp[1], nextPoint=1
+	//	nextPoint = 1;
 	//}
-	//
-	//if (low >= controlPoints.size())
-	//{
+	//else if(time > controlPoints[1].time && time < controlPoints[2].time){					//time between cp[1] --- cp[2]
+	//	nextPoint = 2;
+	//}
+	//else if(time > controlPoints[2].time && time < controlPoints[3].time){					//time between cp[2] --- cp[3]
+	//	nextPoint = 3;
+	//}
+	//else{
 	//	return false;
 	//}
 
-	//nextPoint = low;
-	return true;
+	//We might need a general function that handles multiple points (more than 3). -Jack
+	//Below is the binary search
+
+	for (int i = 0; i < controlPoints.size(); i++)
+	{
+		if (controlPoints[i].time >= time)
+		{
+			nextPoint = i;
+			return true;
+		}
+	}
+	return false;
 }
 
 // Implement Hermite curve
@@ -169,9 +163,9 @@ Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 	//Formula: p = (2t3 - 3t2 + 1)p0 + (t3 - 2t2 +t)m0 + (-2t3 + 3t2)p1 + (t3 - t2)m1
 
 	newPosition = (2 * t3 - 3 * t2 + 1) * controlPoints[curPoint].position +
-		(t3 - 2 * t2 + t) * controlPoints[curPoint].tangent +
+		(t3 - 2 * t2 + t) * intervalTime * controlPoints[curPoint].tangent +
 		(-2 * t3 + 3 * t2) * controlPoints[nextPoint].position +
-		(t3 - t2) * controlPoints[nextPoint].tangent;
+		(t3 - t2) * intervalTime * controlPoints[nextPoint].tangent;
 
 
 	//================DELETE THIS PART AND THEN START CODING===================
@@ -201,18 +195,18 @@ Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 	*/
 
 	Point newPosition;
-	Point p0 = controlPoints[0].position,
-				p1 = controlPoints[1].position,
-				p2 = controlPoints[2].position,
-				p3 = controlPoints[3].position;
+	//Point p0 = controlPoints[0].position,
+	//			p1 = controlPoints[1].position,
+	//			p2 = controlPoints[2].position,
+	//			p3 = controlPoints[3].position;
 
-	// Calculate position at t = time on Catmull-Rom curve
-	newPosition = 0.5 * (
-		2 * p1 +
-		(p2 - p0)*time +
-		(2 * p0 - 5 * p1 + 4 * p2 - p3)*pow(time, 2) +
-		(p3 - 3 * p2 + 3 * p1 - p0)*pow(time, 3)
-		);
+	//// Calculate position at t = time on Catmull-Rom curve
+	//newPosition = 0.5 * (
+	//	2 * p1 +
+	//	(p2 - p0)*time +
+	//	(2 * p0 - 5 * p1 + 4 * p2 - p3)*pow(time, 2) +
+	//	(p3 - 3 * p2 + 3 * p1 - p0)*pow(time, 3)
+	//	);
 
 	// Return result
 	return newPosition;
