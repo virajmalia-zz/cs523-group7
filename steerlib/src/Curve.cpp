@@ -72,7 +72,7 @@ void Curve::drawCurve(Color curveColor, float curveThickness, int window)
 // Sort controlPoints vector in ascending order: min-first
 void Curve::sortControlPoints()
 {
-	// Sort controlPoints{position(x,y,z), tanget(x,y,z), time}
+	// Sort controlPoints{Point position(x,y,z), Vector tanget(x,y,z), float time}
 
 	//Might need to add comparing function - Jack
 	std::sort(controlPoints.begin(), controlPoints.end());
@@ -119,22 +119,6 @@ bool Curve::checkRobust()
 // Find the current time interval (i.e. index of the next control point to follow according to current time)
 bool Curve::findTimeInterval(unsigned int& nextPoint, float time)
 {	
-	//if( time > controlPoints[0].time && time < controlPoints[1].time){								//time between cp[0] --- cp[1], nextPoint=1
-	//	nextPoint = 1;
-	//}
-	//else if(time > controlPoints[1].time && time < controlPoints[2].time){					//time between cp[1] --- cp[2]
-	//	nextPoint = 2;
-	//}
-	//else if(time > controlPoints[2].time && time < controlPoints[3].time){					//time between cp[2] --- cp[3]
-	//	nextPoint = 3;
-	//}
-	//else{
-	//	return false;
-	//}
-
-	//We might need a general function that handles multiple points (more than 3). -Jack
-	//Below is the binary search
-
 	for (int i = 0; i < controlPoints.size(); i++)
 	{
 		if (controlPoints[i].time >= time)
@@ -167,47 +151,57 @@ Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 		(-2 * t3 + 3 * t2) * controlPoints[nextPoint].position +
 		(t3 - t2) * intervalTime * controlPoints[nextPoint].tangent;
 
-
-	//================DELETE THIS PART AND THEN START CODING===================
-	/*static bool flag = false;
-	if (!flag)
-	{
-		std::cerr << "ERROR>>>>Member function useHermiteCurve is not implemented!" << std::endl;
-		flag = true;
-	}*/
-	//=========================================================================
-
-	// Calculate position at t = time on Hermite curve
-
-	// Return result
 	return newPosition;
 }
 
 // Implement Catmull-Rom curve
 Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 {
-	/*
-	Should use parameter nextPoint and handle begin, end points - Jack
-	0 = nextPoint - 2;
-	1 = nextPoint - 1;
-	2 = nextPoint;
-	3 = nextPoint + 1;
-	*/
+
+
+	int prevAux = (nextPoint - 2) < 0 ? controlPoints.size() - (nextPoint - 2) : nextPoint - 2;
+	int	prev = (nextPoint - 1) < 0 ? controlPoints.size() - 1 : nextPoint - 1;
+	int	curr = nextPoint;
+	int	nextAux = (nextPoint + 1 % controlPoints.size()) > 0 ? nextPoint + 1 : 0;
+	
+	float normalTime, intervalTime;
+
+	intervalTime = controlPoints[curr].time - controlPoints[prev].time;
+	normalTime = (time - controlPoints[prev].time) / intervalTime;
+
+	const float t = normalTime;
 
 	Point newPosition;
-	//Point p0 = controlPoints[0].position,
-	//			p1 = controlPoints[1].position,
-	//			p2 = controlPoints[2].position,
-	//			p3 = controlPoints[3].position;
+	Point p0 = controlPoints[prevAux].position,
+				p1 = controlPoints[prev].position,
+				p2 = controlPoints[curr].position,
+				p3 = controlPoints[nextAux].position;
 
-	//// Calculate position at t = time on Catmull-Rom curve
-	//newPosition = 0.5 * (
-	//	2 * p1 +
-	//	(p2 - p0)*time +
-	//	(2 * p0 - 5 * p1 + 4 * p2 - p3)*pow(time, 2) +
-	//	(p3 - 3 * p2 + 3 * p1 - p0)*pow(time, 3)
-	//	);
+	Vector t0 = controlPoints[prevAux].tangent,
+		t1 = controlPoints[prev].tangent,
+		t2 = controlPoints[curr].tangent,
+		t3 = controlPoints[nextAux].tangent;
 
+	// Calculate position at t = time on Catmull-Rom curve
+	
+	newPosition = 0.7 * (
+		2 * p1 +
+		(p2 - p0) * t +
+		((2 * p0 - 5 * p1) + (4 * p2 - p3)) * pow(t, 2) +
+		((p3 - 3 * p2) + (3 * p1 - p0)) * pow(t, 3)
+		);
+		
+	/*
+	newPosition = 0.5 * (
+		(2.0f * t * t * t - 3.0f * t * t + 1.0f) * p1 + 
+		(t * t * t - 2.0f * t * t + t) * t1 +
+		(-2.0f * t * t * t + 3.0f * t * t) * p2	+
+		(t * t * t - t * t) * t2 );
+		*/
+	// Method 2
+	
+	//newPosition = p1 + t1*t + 3 * (p2 - p1)*t*t + (t1 + t2 - 2 * (p2 - p1))*t*t*t;
+	
 	// Return result
 	return newPosition;
 }

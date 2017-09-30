@@ -15,7 +15,7 @@
 #include <vector>
 #include <math.h>
 #include <limits>
-
+#define Simplex std::vector<Util::Vector>
 
 namespace SteerLib
 {
@@ -131,6 +131,18 @@ namespace SteerLib
 		static bool intersect(float& return_penetration_depth, Util::Vector& return_penetration_vector, const std::vector<Util::Vector>& _shapeA, const std::vector<Util::Vector>& _shapeB);
 
 	private:
+		static bool GJK(const std::vector<Util::Vector>& _shapeA, const std::vector<Util::Vector>& _shapeB);
+
+		static std::pair<float, Util::Vector> EPA(const std::vector<Util::Vector>&, const std::vector<Util::Vector>&, Simplex);
+		
+		static void getNearestEdge(Simplex&, float&, Util::Vector&, int&);
+
+		static Util::Vector Support(const std::vector<Util::Vector>& shapeA, const std::vector<Util::Vector>& shapeB, Util::Vector d);
+
+		static Util::Vector FarthestPoint(const std::vector<Util::Vector>& s, const Util::Vector d);
+
+		static bool checkOrigin(Util::Vector& d);
+
 
 	}; // class GJK_EPA
 
