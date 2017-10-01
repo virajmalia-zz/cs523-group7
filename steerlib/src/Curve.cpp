@@ -157,21 +157,19 @@ Point Curve::useHermiteCurve(const unsigned int nextPoint, const float time)
 // Implement Catmull-Rom curve
 Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 {
-	float normalTime, intervalTime;
 
-	const unsigned int curPoint = nextPoint - 1;
-	intervalTime = controlPoints[nextPoint].time - controlPoints[curPoint].time;
-	normalTime = (time - controlPoints[curPoint].time) / intervalTime;
 
-	const float t = normalTime;
-	//const float t2 = t*t;
-	//const float t3 = t*t*t;
-	
 	int prevAux = (nextPoint - 2) < 0 ? controlPoints.size() - (nextPoint - 2) : nextPoint - 2;
 	int	prev = (nextPoint - 1) < 0 ? controlPoints.size() - 1 : nextPoint - 1;
 	int	curr = nextPoint;
 	int	nextAux = (nextPoint + 1 % controlPoints.size()) > 0 ? nextPoint + 1 : 0;
 	
+	float normalTime, intervalTime;
+
+	intervalTime = controlPoints[curr].time - controlPoints[prev].time;
+	normalTime = (time - controlPoints[prev].time) / intervalTime;
+
+	const float t = normalTime;
 
 	Point newPosition;
 	Point p0 = controlPoints[prevAux].position,
@@ -179,26 +177,31 @@ Point Curve::useCatmullCurve(const unsigned int nextPoint, const float time)
 				p2 = controlPoints[curr].position,
 				p3 = controlPoints[nextAux].position;
 
-	//Vector  p3_tangent = controlPoints[nextAux].tangent;
+	Vector t0 = controlPoints[prevAux].tangent,
+		t1 = controlPoints[prev].tangent,
+		t2 = controlPoints[curr].tangent,
+		t3 = controlPoints[nextAux].tangent;
 
 	// Calculate position at t = time on Catmull-Rom curve
 	
-	newPosition = 0.5 * (
+	newPosition = 0.7 * (
 		2 * p1 +
 		(p2 - p0) * t +
 		((2 * p0 - 5 * p1) + (4 * p2 - p3)) * pow(t, 2) +
 		((p3 - 3 * p2) + (3 * p1 - p0)) * pow(t, 3)
 		);
-	
-	// Method 2 - basis function
+		
 	/*
-	float b0 = 2 * t*t - t - t*t*t;
-	float b1 = 2 - 5 * t*t + 3 * t*t*t;
-	float b2 = t + 4 * t*t - 3 * t*t*t;
-	float b3 = t*t*t - t*t;
-
-	newPosition = b0 * (p0 + p1) + b1 * (p1 + p2) + b2 * (p2 + p3) + b3 * (p3 + p0);
-	*/
+	newPosition = 0.5 * (
+		(2.0f * t * t * t - 3.0f * t * t + 1.0f) * p1 + 
+		(t * t * t - 2.0f * t * t + t) * t1 +
+		(-2.0f * t * t * t + 3.0f * t * t) * p2	+
+		(t * t * t - t * t) * t2 );
+		*/
+	// Method 2
+	
+	//newPosition = p1 + t1*t + 3 * (p2 - p1)*t*t + (t1 + t2 - 2 * (p2 - p1))*t*t*t;
+	
 	// Return result
 	return newPosition;
 }

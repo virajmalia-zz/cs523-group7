@@ -23,14 +23,14 @@
 
   <suggestedCameraView>
     <position>
-      <x>20</x>
-      <y>10</y>
+      <x>-30</x>
+      <y>20</y>
       <z>0</z>
     </position>
     <lookat>
       <x>0</x>
-      <y>0</y>
-      <z>-5</z>
+      <y>15</y>
+      <z>0</z>
     </lookat>
     <up>
       <x>0</x>
@@ -40,31 +40,6 @@
     <fovy>45</fovy>
     <targetTangent>
       <x>0</x>
-      <y>0</y>
-      <z>0</z>
-    </targetTangent>
-    <targetTime>30</targetTime>
-  </suggestedCameraView>
-
-  <suggestedCameraView>
-    <position>
-      <x>0</x>
-      <y>30</y>
-      <z>-20</z>
-    </position>
-    <lookat>
-      <x>0</x>
-      <y>0</y>
-      <z>-5</z>
-    </lookat>
-    <up>
-      <x>0</x>
-      <y>1</y>
-      <z>0</z>
-    </up>
-    <fovy>45</fovy>
-    <targetTangent>
-      <x>-2</x>
       <y>0</y>
       <z>0</z>
     </targetTangent>
@@ -73,14 +48,39 @@
 
   <suggestedCameraView>
     <position>
-      <x>-50</x>
-      <y>10</y>
-      <z>0</z>
+      <x>-40</x>
+      <y>30</y>
+      <z>-25</z>
     </position>
     <lookat>
       <x>0</x>
+      <y>10</y>
+      <z>0</z>
+    </lookat>
+    <up>
+      <x>0</x>
+      <y>10</y>
+      <z>0</z>
+    </up>
+    <fovy>45</fovy>
+    <targetTangent>
+      <x>0</x>
       <y>0</y>
-      <z>-5</z>
+      <z>0</z>
+    </targetTangent>
+    <targetTime>150</targetTime>
+  </suggestedCameraView>
+
+  <suggestedCameraView>
+    <position>
+      <x>-30</x>
+      <y>25</y>
+      <z>-40</z>
+    </position>
+    <lookat>
+      <x>0</x>
+      <y>15</y>
+      <z>0</z>
     </lookat>
     <up>
       <x>0</x>
@@ -93,9 +93,24 @@
       <y>0</y>
       <z>0</z>
     </targetTangent>
-    <targetTime>120</targetTime>
+    <targetTime>210</targetTime>
   </suggestedCameraView>
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
   <agent>
     <name>A</name>
@@ -113,9 +128,9 @@
       </direction>
       <speed>0</speed>
       <color>
-        <r>0.3</r>
-        <g>0.5</g>
-        <b>1</b>
+        <r>1</r>
+        <g>.3</g>
+        <b>.5</b>
       </color>
     </initialConditions>
     <goalSequence>
@@ -123,7 +138,7 @@
       <seekStaticTarget>
         <targetLocation>
           <x>10</x>
-          <y>0</y>
+          <y>5</y>
           <z>10</z>
         </targetLocation>
         <targetTangent>
@@ -139,7 +154,7 @@
       <seekStaticTarget>
         <targetLocation>
           <x>15</x>
-          <y>20</y>
+          <y>25</y>
           <z>0</z>
         </targetLocation>
         <targetTangent>
@@ -155,7 +170,7 @@
       <seekStaticTarget>
         <targetLocation>
           <x>0</x>
-          <y>10</y>
+          <y>15</y>
           <z>-10</z>
         </targetLocation>
         <targetTangent>
@@ -171,7 +186,7 @@
       <seekStaticTarget>
         <targetLocation>
           <x>12</x>
-          <y>12</y>
+          <y>17</y>
           <z>4</z>
         </targetLocation>
         <targetTangent>
@@ -187,7 +202,7 @@
       <seekStaticTarget>
         <targetLocation>
           <x>2</x>
-          <y>-3</y>
+          <y>2</y>
           <z>2</z>
         </targetLocation>
         <targetTangent>
@@ -203,7 +218,7 @@
       <seekStaticTarget>
         <targetLocation>
           <x>-8</x>
-          <y>5</y>
+          <y>10</y>
           <z>-4</z>
         </targetLocation>
         <targetTangent>
@@ -219,7 +234,7 @@
       <seekStaticTarget>
         <targetLocation>
           <x>0</x>
-          <y>0</y>
+          <y>5</y>
           <z>0</z>
         </targetLocation>
         <targetTangent>
