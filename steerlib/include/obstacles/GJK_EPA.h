@@ -132,6 +132,15 @@ namespace SteerLib
 
 	private:
 
+		bool GJK(const std::vector<Util::Vector>& _shapeA, const std::vector<Util::Vector>& _shapeB);
+
+		Util::Vector Support(const std::vector<Util::Vector>& shapeA, const std::vector<Util::Vector>& shapeB, Util::Vector d);
+
+		Util::Vector FarthestPoint(const std::vector<Util::Vector>& s, const Util::Vector d);
+
+		bool checkOrigin(Util::Vector& d);
+
+
 	}; // class GJK_EPA
 
 } // namespace SteerLib
