@@ -133,7 +133,7 @@ namespace SteerLib
 	private:
 		static bool GJK(const std::vector<Util::Vector>& _shapeA, const std::vector<Util::Vector>& _shapeB);
 
-		static std::pair<float, Util::Vector> EPA(const std::vector<Util::Vector>&, const std::vector<Util::Vector>&, Simplex);
+		static bool EPA(const std::vector<Util::Vector>&, const std::vector<Util::Vector>&, Simplex, float&, Util::Vector&);
 		
 		static void getNearestEdge(Simplex&, float&, Util::Vector&, int&);
 

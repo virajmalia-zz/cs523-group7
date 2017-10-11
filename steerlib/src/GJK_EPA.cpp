@@ -15,7 +15,7 @@ bool SteerLib::GJK_EPA::intersect(float& return_penetration_depth, Util::Vector&
 
 	if (isIntersect)
 	{
-		EPA(_shapeA, _shapeB, _simplex);
+		EPA(_shapeA, _shapeB, _simplex, return_penetration_depth, return_penetration_vector);
 		_simplex.clear();
 	}
 	else
@@ -151,21 +151,34 @@ bool SteerLib::GJK_EPA::checkOrigin(Util::Vector& d)
 	return false;
 }
 
-std::pair<float, Util::Vector> SteerLib::GJK_EPA::EPA(const std::vector<Util::Vector>& shape_A, const std::vector<Util::Vector>& shape_B, Simplex s) {
+bool SteerLib::GJK_EPA::EPA(const std::vector<Util::Vector>& shape_A, const std::vector<Util::Vector>& shape_B, Simplex s, float& pen_depth, Util::Vector& pen_vector) {
 	// EPA Algorithm & Penetration Calculation
 
-	// Get nearest edge to the origin
-	float distance;
-	int index;
-	Util::Vector normal;
-	getNearestEdge(s, distance, normal, index);
+	while (1) {
+		// Get nearest edge to the origin
+		float distance;
+		int index;
+		Util::Vector normal;
+		getNearestEdge(s, distance, normal, index);
 
-	// Find Support point in direction of edge-normal
-	Util::Vector support = Support(shape_A, shape_B, normal);
+		// Find Support point in direction of edge-normal
+		Util::Vector support = Support(shape_A, shape_B, normal);
 
-	// If Dot(support point & edge-normal)
-	float product = support * normal;
+		// Dot(support point & edge-normal)
+		float product = support * normal;
 
+		if (product - distance <= 0) {
+
+			pen_vector = normal;
+			pen_depth = distance;
+
+			return true;
+		}
+		else {
+
+			s.insert(s.begin() + index, support);
+		}
+	}
 }
 
 void SteerLib::GJK_EPA::getNearestEdge(Simplex& simplex, float& d, Util::Vector& normal, int& ind) {
@@ -192,7 +205,6 @@ void SteerLib::GJK_EPA::getNearestEdge(Simplex& simplex, float& d, Util::Vector&
 			ind = nextPoint;
 			normal = n;
 		}
-
 	}
 }
 
