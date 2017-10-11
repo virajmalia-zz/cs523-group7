@@ -143,7 +143,6 @@ namespace SteerLib
 
 		static bool checkOrigin(Util::Vector& d);
 
-
 	}; // class GJK_EPA
 
 } // namespace SteerLib
