@@ -165,6 +165,12 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 				_goalQueue.push(initialConditions.goals[i]);
 			}
 		}
+		else if (initialConditions.goals[i].goalType == SteerLib::GOAL_TYPE_SEEK_DYNAMIC_TARGET) {
+			// Update goal for the Cop
+		}
+		else if (initialConditions.goals[i].goalType == SteerLib::GOAL_TYPE_FLEE_DYNAMIC_TARGET) {
+			// Update goal for the Thief_Partner
+		}
 		else {
 			throw Util::GenericException("Unsupported goal type; SocialForcesAgent only supports GOAL_TYPE_SEEK_STATIC_TARGET and GOAL_TYPE_AXIS_ALIGNED_BOX_GOAL.");
 		}
@@ -217,7 +223,6 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 	assert(_radius != 0.0f);
 }
 
-
 void SocialForcesAgent::calcNextStep(float dt)
 {
 
@@ -244,7 +249,6 @@ std::pair<float, Util::Point> minimum_distance(Util::Point l1, Util::Point l2, U
   const Util::Point projection = l1 + t * (l2 - l1);  // Projection falls on the segment
   return std::make_pair((p - projection).length(), projection) ;
 }
-
 
 Util::Vector SocialForcesAgent::calcProximityForce(float dt)
 {
@@ -762,7 +766,6 @@ void SocialForcesAgent::computeNeighbors()
 	}
 }*/
 
-
 void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNumber)
 {
 	// std::cout << "_SocialForcesParams.rvo_max_speed " << _SocialForcesParams._SocialForcesParams.rvo_max_speed << std::endl;
@@ -883,7 +886,6 @@ void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNu
 
 }
 
-
 void SocialForcesAgent::draw()
 {
 #ifdef ENABLE_GUI
@@ -984,4 +986,3 @@ void SocialForcesAgent::draw()
 
 #endif
 }
-
