@@ -930,7 +930,7 @@ Util::Vector SocialForcesAgent::pursueEvade(Util::Vector prevGoal)
 {
 	if (this->agentClass != Thief)
 	{
-		// Update force
+		// Create zero force
 		Util::Vector force = Util::Vector();
 		std::set<SteerLib::SpatialDatabaseItemPtr> _neighbors;
 		SocialForcesAgent* neighbor;
@@ -946,15 +946,18 @@ Util::Vector SocialForcesAgent::pursueEvade(Util::Vector prevGoal)
 			if ((*iter)->isAgent())
 			{
 				neighbor = (SocialForcesAgent*)dynamic_cast<SteerLib::AgentInterface *>(*iter);
+
+				// Pursue
 				if (this->agentClass == Cop && neighbor->agentClass != Cop)
 				{
 					force = normalize(neighbor->position() - this->position());
 					force *= 1.5;
 				}
+				// Evade
 				else if (this->agentClass == Thief_Partner && neighbor->agentClass == Cop)
 				{
 					force = prevGoal - normalize(neighbor->position() - this->position());
-					force *= 1.5;
+					force *= 2;
 				}
 				else
 				{
