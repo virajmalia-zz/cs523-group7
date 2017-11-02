@@ -28,6 +28,10 @@
 // #define DRAW_HISTORIES 1
 // #define DRAW_COLLISIONS 1
 
+enum AgentClass
+{
+	Cop, Thief, Thief_Partner
+};
 
 class SocialForcesAgent : public SteerLib::AgentInterface
 {
@@ -96,6 +100,11 @@ private:
 	// void updateMidTermPath();
 	// bool hasLineOfSightTo(Util::Point point);
 
+
+	std::string _name;
+	AgentClass agentClass;
+
+	Util::Vector pursueEvade(Util::Vector prevGoal);
 
 	void calcNextStep(float dt);
 	Util::Vector calcRepulsionForce(float dt);

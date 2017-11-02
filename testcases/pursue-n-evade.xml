@@ -16,19 +16,6 @@
     </worldBounds>
   </header>
 
-  <suggestedCameraView>
-    <position> <x>44</x> <y>30</y> <z>0</z> </position>
-    <lookat> <x>27</x> <y>0</y> <z>0</z> </lookat>
-    <up> <x>0</x> <y>1</y> <z>0</z> </up>
-    <fovy>45</fovy>
-  </suggestedCameraView>
-
-  <suggestedCameraView>
-    <position> <x>104</x> <y>80</y> <z>0</z> </position>
-    <lookat> <x>47</x> <y>0</y> <z>0</z> </lookat>
-    <up> <x>0</x> <y>1</y> <z>0</z> </up>
-    <fovy>45</fovy>
-  </suggestedCameraView>
 
   <agent>
     <name>Thief_Main</name>
@@ -45,18 +32,22 @@
         <timeDuration>1000.0</timeDuration>
       </seekStaticTarget>
     </goalSequence>
-
   </agent>
 
-  <agent>
+    <agent>
     <name>Cop</name>
     <initialConditions>
       <radius>0.5</radius>
-      <position> <x>-20</x> <y>0</y> <z>-0.5</z> </position>
-      <direction> <x>1</x> <y>0</y> <z>0</z> </direction>
+      <position> <x>0</x> <y>0</y> <z>0</z> </position>
+      <direction> <x>-1</x> <y>0</y> <z>0</z> </direction>
       <speed>0</speed>
     </initialConditions>
     <goalSequence>
+	    <seekStaticTarget>
+        <targetLocation> <x>-20</x> <y>0</y> <z>0</z> </targetLocation>
+        <desiredSpeed>1.3</desiredSpeed>
+        <timeDuration>1000.0</timeDuration>
+      </seekStaticTarget>
       <seekDynamicTarget>
           <targetName>Thief_Main</targetName>
           <random>false</random>
@@ -66,12 +57,11 @@
     </goalSequence>
 
   </agent>
-
   <agent>
     <name>Thief_Partner</name>
     <initialConditions>
       <radius>0.5</radius>
-      <position> <x>20</x> <y>0</y> <z>20</z> </position>
+      <position> <x>-10</x> <y>0</y> <z>10</z> </position>
       <direction> <x>1</x> <y>0</y> <z>0</z> </direction>
       <speed>0</speed>
     </initialConditions>

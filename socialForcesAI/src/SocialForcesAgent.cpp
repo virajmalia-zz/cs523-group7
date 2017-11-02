@@ -19,6 +19,7 @@
 #undef max
 
 #define AGENT_MASS 1.0f
+#define AGENT_RANGE 6.0f
 
 using namespace Util;
 using namespace SocialForcesGlobals;
@@ -107,6 +108,10 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 	_forward = normalize(initialConditions.direction);
 	_radius = initialConditions.radius;
 	_velocity = initialConditions.speed * _forward;
+
+	// Determine different agent classes
+	_name = initialConditions.name;
+
 	// std::cout << "inital colour of agent " << initialConditions.color << std::endl;
 	if ( initialConditions.colorSet == true )
 	{
@@ -146,6 +151,10 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 		_goalQueue.pop();
 	}
 
+	// Set default class for agents
+	agentClass = Thief;
+	_color = Util::gBlack;
+
 	// iterate over the sequence of goals specified by the initial conditions.
 	for (unsigned int i=0; i<initialConditions.goals.size(); i++) {
 		if (initialConditions.goals[i].goalType == SteerLib::GOAL_TYPE_SEEK_STATIC_TARGET ||
@@ -167,9 +176,13 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 		}
 		else if (initialConditions.goals[i].goalType == SteerLib::GOAL_TYPE_SEEK_DYNAMIC_TARGET) {
 			// Update goal for the Cop
+			agentClass = Cop;
+			_color = Util::gBlue;
 		}
 		else if (initialConditions.goals[i].goalType == SteerLib::GOAL_TYPE_FLEE_DYNAMIC_TARGET) {
 			// Update goal for the Thief_Partner
+			agentClass = Thief_Partner;
+			_color = Util::gDarkRed;
 		}
 		else {
 			throw Util::GenericException("Unsupported goal type; SocialForcesAgent only supports GOAL_TYPE_SEEK_STATIC_TARGET and GOAL_TYPE_AXIS_ALIGNED_BOX_GOAL.");
@@ -796,10 +809,14 @@ void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNu
 	{
 		goalDirection = normalize(goalInfo.targetLocation - position());
 	}
+
+	goalDirection = pursueEvade(goalDirection);
+
 	// _prefVelocity = goalDirection * PERFERED_SPEED;
 	Util::Vector prefForce = (((goalDirection * PERFERED_SPEED) - velocity()) / (_SocialForcesParams.sf_acceleration/dt)); //assumption here
 	prefForce = prefForce + velocity();
 	// _velocity = prefForce;
+
 
 	Util::Vector repulsionForce = calcRepulsionForce(dt);
 	if ( repulsionForce.x != repulsionForce.x)
@@ -884,6 +901,46 @@ void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNu
 	}
 	// _position = _position + (_velocity * dt);
 
+}
+Util::Vector SocialForcesAgent::pursueEvade(Util::Vector prevGoal)
+{
+	if (this->agentClass != Thief)
+	{
+		// Update force
+		Util::Vector force = Util::Vector();
+		std::set<SteerLib::SpatialDatabaseItemPtr> _neighbors;
+		SocialForcesAgent* neighbor;
+		// Get all agents within radius * AGENT_RANGE
+		getSimulationEngine()->getSpatialDatabase()->getItemsInRange(_neighbors, _position.x - (this->_radius * AGENT_RANGE), _position.x + (this->_radius * AGENT_RANGE),
+			_position.z - (this->_radius * AGENT_RANGE), _position.z + (this->_radius * AGENT_RANGE), dynamic_cast<SteerLib::SpatialDatabaseItemPtr>(this));
+
+		if (_neighbors.size() == 0)
+			return prevGoal;
+
+		for (std::set<SteerLib::SpatialDatabaseItemPtr>::iterator iter = _neighbors.begin(); iter != _neighbors.end(); iter++)
+		{
+			if ((*iter)->isAgent())
+			{
+				neighbor = (SocialForcesAgent*)dynamic_cast<SteerLib::AgentInterface *>(*iter);
+				if (this->agentClass == Cop && neighbor->agentClass != Cop)
+				{
+					force = normalize(neighbor->position() - this->position());
+					force *= 1.5;
+				}
+				else if (this->agentClass == Thief_Partner && neighbor->agentClass == Cop)
+				{
+					force = prevGoal - normalize(neighbor->position() - this->position());
+					force *= 1.5;
+				}
+				else
+				{
+					force = prevGoal;
+				}
+			}
+		}
+		return force;
+	}
+	return prevGoal;
 }
 
 void SocialForcesAgent::draw()
