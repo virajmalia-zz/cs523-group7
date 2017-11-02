@@ -902,6 +902,7 @@ void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNu
 	// _position = _position + (_velocity * dt);
 
 }
+
 Util::Vector SocialForcesAgent::pursueEvade(Util::Vector prevGoal)
 {
 	if (this->agentClass != Thief)
@@ -930,7 +931,7 @@ Util::Vector SocialForcesAgent::pursueEvade(Util::Vector prevGoal)
 				else if (this->agentClass == Thief_Partner && neighbor->agentClass == Cop)
 				{
 					force = prevGoal - normalize(neighbor->position() - this->position());
-					force *= 1.5;
+					force *= 15;
 				}
 				else
 				{

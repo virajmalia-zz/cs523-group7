@@ -71,6 +71,11 @@
           <desiredSpeed>1.3</desiredSpeed>
           <timeDuration>1000.0</timeDuration>
         </seekStaticTarget>
+        <seekStaticTarget>
+          <targetLocation> <x>35</x> <y>0</y> <z>0</z> </targetLocation>
+          <desiredSpeed>1.3</desiredSpeed>
+          <timeDuration>1000.0</timeDuration>
+        </seekStaticTarget>
       <fleeDynamicTarget>
           <targetName>Cop</targetName>
           <random>false</random>
