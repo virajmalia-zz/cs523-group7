@@ -29,6 +29,9 @@ using namespace SteerLib;
 
 SocialForcesAgent::SocialForcesAgent()
 {
+	// Change agent behavior here: PnE (Pursue and Evade), Spiral (Growing Spiral), LF (Leader Following)
+	agentMode = Spiral;
+
 	_SocialForcesParams.sf_acceleration = sf_acceleration;
 	_SocialForcesParams.sf_personal_space_threshold = sf_personal_space_threshold;
 	_SocialForcesParams.sf_agent_repulsion_importance = sf_agent_repulsion_importance;
@@ -109,9 +112,6 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 	_radius = initialConditions.radius;
 	_velocity = initialConditions.speed * _forward;
 
-	// Determine different agent classes
-	_name = initialConditions.name;
-
 	// std::cout << "inital colour of agent " << initialConditions.color << std::endl;
 	if ( initialConditions.colorSet == true )
 	{
@@ -152,8 +152,16 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 	}
 
 	// Set default class for agents
-	agentClass = Thief;
-	_color = Util::gBlack;
+	if (agentMode == PnE)
+	{
+		agentClass = Thief;
+		_color = Util::gBlack;
+	}
+	else if (agentMode == LF)
+	{
+		agentClass = Leader;
+		_color = Util::gRed;
+	}
 
 	// iterate over the sequence of goals specified by the initial conditions.
 	for (unsigned int i=0; i<initialConditions.goals.size(); i++) {
@@ -175,9 +183,18 @@ void SocialForcesAgent::reset(const SteerLib::AgentInitialConditions & initialCo
 			}
 		}
 		else if (initialConditions.goals[i].goalType == SteerLib::GOAL_TYPE_SEEK_DYNAMIC_TARGET) {
-			// Update goal for the Cop
-			agentClass = Cop;
-			_color = Util::gBlue;
+			if (agentMode == PnE)
+			{
+				// Set agent to be Cop
+				agentClass = Cop;
+				_color = Util::gBlue;
+			}
+			else if (agentMode == LF)
+			{
+				// Set agent to be follower
+				agentClass = Follower;
+				_color = Util::gBlue;
+			}
 		}
 		else if (initialConditions.goals[i].goalType == SteerLib::GOAL_TYPE_FLEE_DYNAMIC_TARGET) {
 			// Update goal for the Thief_Partner
@@ -810,7 +827,14 @@ void SocialForcesAgent::updateAI(float timeStamp, float dt, unsigned int frameNu
 		goalDirection = normalize(goalInfo.targetLocation - position());
 	}
 
-	goalDirection = pursueEvade(goalDirection);
+	if (agentMode == PnE)
+	{
+		goalDirection = pursueEvade(goalDirection);
+	}
+	else if (agentMode == Spiral)
+	{
+		goalDirection = growingSpiral(dt);
+	}
 
 	// _prefVelocity = goalDirection * PERFERED_SPEED;
 	Util::Vector prefForce = (((goalDirection * PERFERED_SPEED) - velocity()) / (_SocialForcesParams.sf_acceleration/dt)); //assumption here
@@ -941,6 +965,35 @@ Util::Vector SocialForcesAgent::pursueEvade(Util::Vector prevGoal)
 		return force;
 	}
 	return prevGoal;
+}
+
+Util::Vector SocialForcesAgent::growingSpiral(float dt)
+{
+	// Get starting position as spiral center
+	Util::Point center = position();
+	float a;
+	// Compute parameters
+	if (center.x == 0 || abs(center.x - center.z) < 0.1f) 
+	{
+		a = atan(center.z / (center.x + 0.01f));
+	}
+	else
+	{
+		a = atan(center.z / center.x);
+	}
+	float r = (2.0f * sqrtf(center.x * center.x + center.z * center.z) + 5.0f);
+
+	// Compute the spiral
+	Util::Vector spiral;
+	if (center.x < 0.0f)
+	{
+		spiral = r * Util::Vector(sin(a), 0.0f, -cos(a));
+	}
+	else
+	{
+		spiral = r * Util::Vector(-sin(a), 0.0f, cos(a));
+	}
+	return spiral * dt;
 }
 
 void SocialForcesAgent::draw()

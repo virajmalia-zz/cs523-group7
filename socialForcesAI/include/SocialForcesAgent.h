@@ -30,7 +30,12 @@
 
 enum AgentClass
 {
-	Cop, Thief, Thief_Partner
+	Cop, Thief, Thief_Partner, Leader, Follower
+};
+
+enum AgentMode
+{
+	PnE, Spiral, LF
 };
 
 class SocialForcesAgent : public SteerLib::AgentInterface
@@ -101,10 +106,12 @@ private:
 	// bool hasLineOfSightTo(Util::Point point);
 
 
-	std::string _name;
+
 	AgentClass agentClass;
+	AgentMode agentMode;
 
 	Util::Vector pursueEvade(Util::Vector prevGoal);
+	Util::Vector growingSpiral(float dt);
 
 	void calcNextStep(float dt);
 	Util::Vector calcRepulsionForce(float dt);
