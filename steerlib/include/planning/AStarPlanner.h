@@ -32,31 +32,33 @@ namespace SteerLib
 		public:
 			double f;
 			double g;
+			double rhs;
 			Util::Point point;
 			AStarPlannerNode* parent;
-			AStarPlannerNode(Util::Point _point, double _g, double _f, AStarPlannerNode* _parent)
+			AStarPlannerNode(Util::Point _point, double _g, double _f, double _rhs, AStarPlannerNode* _parent)
 			{
 				f = _f;
 				point = _point;
 				g = _g;
+				rhs = _rhs;
 				parent = _parent;
 			}
+
 			bool operator<(AStarPlannerNode other) const
 		    {
 		        return this->f < other.f;
 		    }
+
 		    bool operator>(AStarPlannerNode other) const
 		    {
 		        return this->f > other.f;
 		    }
+
 		    bool operator==(AStarPlannerNode other) const
 		    {
 		        return ((this->point.x == other.point.x) && (this->point.z == other.point.z));
 		    }
-
 	};
-
-	
 
 	class STEERLIB_API AStarPlanner{
 		public:
@@ -99,7 +101,6 @@ namespace SteerLib
 		private:
 			SteerLib::SpatialDataBaseInterface * gSpatialDatabase;
 	};
-
 
 }
 
