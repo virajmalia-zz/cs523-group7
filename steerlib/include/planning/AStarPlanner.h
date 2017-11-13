@@ -14,6 +14,18 @@
 #include <map>
 #include "SteerLib.h"
 
+#include <unordered_set>
+#include <unordered_map>
+
+// Temp
+#include <queue>
+#include <functional>
+
+enum HMODE
+{
+	EUC, MAN
+};
+
 namespace SteerLib
 {
 
@@ -33,7 +45,8 @@ namespace SteerLib
 			double f;
 			double g;
 			Util::Point point;
-			AStarPlannerNode* parent;
+			AStarPlannerNode* parent;	
+
 			AStarPlannerNode(Util::Point _point, double _g, double _f, AStarPlannerNode* _parent)
 			{
 				f = _f;
@@ -41,19 +54,47 @@ namespace SteerLib
 				g = _g;
 				parent = _parent;
 			}
+
+			// Modified operator for rule 1
 			bool operator<(AStarPlannerNode other) const
 		    {
-		        return this->f < other.f;
+				if (this->f < other.f)
+					return true;
+				else if (this->f == other.f && this->g < other.g)
+					return true;
+				else
+					return false;
 		    }
 		    bool operator>(AStarPlannerNode other) const
 		    {
-		        return this->f > other.f;
+				if (this->f > other.f)
+					return true;
+				else if (this->f == other.f && this->g > other.g)
+					return true;
+				else
+					return false;
 		    }
 		    bool operator==(AStarPlannerNode other) const
 		    {
 		        return ((this->point.x == other.point.x) && (this->point.z == other.point.z));
 		    }
 
+	};
+
+	// Extra Credit Min Heap
+	class STEERLIB_API MinHeap {
+	private:
+		std::vector<AStarPlannerNode> _vector; 
+		void BubbleDown(int index);
+		void BubbleUp(int index);
+		void Heapify();
+
+	public:
+		MinHeap();
+		void insertKey(AStarPlannerNode newValue);
+		AStarPlannerNode extractMin();
+		void DeleteMin();
+		bool isEmpty();
 	};
 
 	
@@ -96,11 +137,20 @@ namespace SteerLib
 			*/
 
 			bool computePath(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::SpatialDataBaseInterface * _gSpatialDatabase, bool append_to_path = false);
+
+			// Customized Variables and Functions
+			MinHeap fringe = MinHeap();
+
+			std::unordered_set<int> closedList;
+			std::unordered_map<int, double> fValues;
+			std::unordered_map<int, int> parentList;
+
+			void AStarPlanner::generateNodes(AStarPlannerNode curr, Util::Point goal);
+			double computeHValue(Util::Point curr, Util::Point goal);
+
 		private:
 			SteerLib::SpatialDataBaseInterface * gSpatialDatabase;
 	};
-
-
 }
 
 
