@@ -25,10 +25,12 @@
 
 namespace SteerLib
 {
+	double eps = INFLATION_FACTOR;
 	AStarPlannerNode startNode(start, INT_MAX, 0, INT_MAX, NULL);
 	AStarPlannerNode goalNode(goal, INT_MAX, 0, 0, NULL);
-	double eps = INFLATION_FACTOR;
 	double h = 0;
+	std::priority_queue< AStarPlannerNode, std::vector<AStarPlannerNode>, std::less<AStarPlannerNode> >
+		open, closed, incons;
 
 	AStarPlanner::AStarPlanner(){}
 
@@ -104,28 +106,93 @@ namespace SteerLib
 		*/
 
 		
-		std::priority_queue< AStarPlannerNode, std::queue<AStarPlannerNode>, std::less<AStarPlannerNode> > open, incons;
-		
 		key(goalNode);
 		open.push(goalNode);
 
-		improvePath();
+		AStarPlannerNode curr = open.top();
+		
+		// Improve path
+		improvePath(curr);
 
 		// Publish current eps-suboptimal solution
 
+		//Forever
 		while (1) {
 			// Updates
+			if (/*change in edge costs are detected*/) {
+				//for all edges with changed costs
+				// update edge cost
+				//updateState();
+			}
+			if (/*significant edge cost changes*/) {
+				// increase eps
+			}
+			else if (eps > 1) {
+				// decrease eps
+			}
 
+			// move states from incon to open
 
+			// min-heapify open
 
+			while (!closed.empty()) {
+				closed.pop();
+			}
 
+			improvePath(curr);
+
+			// Publish curent eps-suboptimal solution
+
+			if (eps == 1) {
+				// wait for changes in edge costs
+			}
+
+			////////////////////////////////////////
 		}
 		return false;
 	}
 
+	void improvePath(AStarPlannerNode curr) {
+		while (key(curr) < key(startNode) || curr.rhs != curr.g) {
+			open.pop();
+			if (curr.g > curr.rhs) {
+				curr.g = curr.rhs;
+				// CLOSED = CLOSED U {s}.........add state to closed queue?
 
+				//for
+			}
+			else {
+				curr.g = INT_MAX;
+				//for
+			}
 
-	void key(AStarPlannerNode &s) {
+		}
+	}
+
+	void updateState(AStarPlannerNode state, AStarPlannerNode goal) {
+		if (/*State was not visited b4*/) {
+			state.g = INT_MAX;
+		}
+
+		if (state != goal) {
+			state.rhs = min();
+		}
+
+		if (/*state in open*/) {
+			// remove state from open
+		}
+
+		if (state.g != state.rhs) {
+			if (/*state is not in closed*/) {
+				key(state);
+				open.push(state);
+			}
+			else
+				incons.push(state);
+		}
+	}
+
+	double key(AStarPlannerNode &s) {
 		h = sqrt( (s.point - startNode.point)*(s.point - startNode.point) );
 		if (s.g > s.rhs) {
 			s.f = min(s.rhs + eps*h, s.rhs);
@@ -133,6 +200,7 @@ namespace SteerLib
 		else {
 			s.f = min(s.g + h, s.g);
 		}
+		return s.f;
 	}
 
 }
