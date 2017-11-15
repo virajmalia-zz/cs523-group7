@@ -33,6 +33,7 @@ namespace SteerLib
 			double f;
 			double g;
 			double rhs;
+			std::vector<double> key;
 			Util::Point point;
 			AStarPlannerNode* parent;
 			AStarPlannerNode(Util::Point _point, double _g, double _f, double _rhs, AStarPlannerNode* _parent)
@@ -97,6 +98,14 @@ namespace SteerLib
 				append_to_path : An optional argument to append to agent_path instead of overwriting it.
 			*/
 
+			std::vector<double> key(AStarPlannerNode *s);
+			void updateStateAD(AStarPlannerNode *s);
+			void computeShortestPathAD();
+			bool KeyAlessthanB(AStarPlannerNode *s, AStarPlannerNode *s2);
+			double AStarPlanner::euclidean_distance(Util::Point a, Util::Point b);
+			std::vector<Util::Point> AStarPlanner::trace(AStarPlannerNode* node);
+			std::vector<AStarPlannerNode*> AStarPlanner::getNeighbors(AStarPlannerNode* a);
+			bool AStarPlanner::addNeighborIfGood(AStarPlannerNode* parent, std::vector<AStarPlannerNode*> &neighbors, Util::Point point);
 			bool computePath(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::SpatialDataBaseInterface * _gSpatialDatabase, bool append_to_path = false);
 		private:
 			SteerLib::SpatialDataBaseInterface * gSpatialDatabase;
