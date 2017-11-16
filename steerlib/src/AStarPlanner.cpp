@@ -199,7 +199,7 @@ namespace SteerLib
 			// Reach Goal
 			if (curr.point == goal)
 			{
-				int index = parentList[gSpatialDatabase->getCellIndexFromLocation(goal)];
+				int index = gSpatialDatabase->getCellIndexFromLocation(goal);
 
 				while (parentList[index] != index)
 				{

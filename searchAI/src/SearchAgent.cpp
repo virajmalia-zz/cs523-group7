@@ -85,12 +85,23 @@ void SearchAgent::reset(const SteerLib::AgentInitialConditions & initialConditio
 	assert(_forward.length()!=0.0f);
 	assert(_goalQueue.size() != 0);
 	assert(_radius != 0.0f);
+	computePlan();
 }
 
 
 void SearchAgent::computePlan()
 {
 	std::cout<<"\nComputing agent plan ";
+
+	// hard code the goal and start
+	//SteerLib::AgentGoalInfo target;
+	//target.targetLocation = Util::Point(-10.0f, 0.0f, -1.0f);
+	//_goalQueue.push(target);
+	//std::cout << "\nStart is " << __position.x << " " << __position.z << std::endl;
+
+	//__position = Util::Point(6.0f, 0.0f, -1.0f);
+
+	// _goalQueue is empty and __position has wrong start point
 	if (!_goalQueue.empty())
 	{
 		Util::Point global_goal = _goalQueue.front().targetLocation;
