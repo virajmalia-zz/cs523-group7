@@ -26,6 +26,11 @@ enum HMODE
 	EUC, MAN
 };
 
+enum SEARCH
+{
+	AStar, ARA, AD
+};
+
 namespace SteerLib
 {
 
@@ -145,7 +150,8 @@ namespace SteerLib
 			std::unordered_map<int, double> fValues;
 			std::unordered_map<int, int> parentList;
 
-			void AStarPlanner::generateNodes(AStarPlannerNode curr, Util::Point goal);
+			bool weightedAStar(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::SpatialDataBaseInterface * _gSpatialDatabase);
+			void generateNodes(AStarPlannerNode curr, Util::Point goal);
 			double computeHValue(Util::Point curr, Util::Point goal);
 
 		private:

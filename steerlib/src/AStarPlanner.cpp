@@ -22,6 +22,9 @@
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
+// Define which AStar to use: AStar, ARA, AD
+#define SEARCH AStar
+
 // Define which heuristic to use: EUC or MAN
 #define MODE EUC
 #define HWEIGHT 1.0f
@@ -173,11 +176,27 @@ namespace SteerLib
 	bool AStarPlanner::computePath(std::vector<Util::Point>& agent_path,  Util::Point start, Util::Point goal, SteerLib::SpatialDataBaseInterface * _gSpatialDatabase, bool append_to_path)
 	{
 		gSpatialDatabase = _gSpatialDatabase;
-	
+
+		bool result;
+
+		// Different implementation
+		switch (SEARCH)
+		{
+		case AStar: result = weightedAStar(agent_path, start, goal, gSpatialDatabase); break;
+		case ARA: result = false; break;
+		case AD: result = false; break;
+		}
+
+		return result;
+	}
+
+
+	bool AStarPlanner::weightedAStar(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::SpatialDataBaseInterface * _gSpatialDatabase)
+	{
 		closedList.clear();
 		parentList.clear();
 		fValues.clear();
-		
+
 		int start_index = gSpatialDatabase->getCellIndexFromLocation(start);
 		parentList.insert({ start_index ,start_index });
 
@@ -188,11 +207,11 @@ namespace SteerLib
 		// Add startPoint to the fringe
 		AStarPlannerNode startPoint = AStarPlannerNode(start, 0.0f, computeHValue(start, goal), nullptr);
 		fringe.insertKey(startPoint);
-		
+
 		// Counter for personal use
 		int counter = 0;
 
-		while (!fringe.isEmpty()) 
+		while (!fringe.isEmpty())
 		{
 			AStarPlannerNode curr = fringe.extractMin();
 
@@ -215,10 +234,10 @@ namespace SteerLib
 			}
 
 			// Expand min from fringe 
-			generateNodes(curr, goal);	
+			generateNodes(curr, goal);
 			counter++;
 		}
-		
+
 		//std::cout << "Path not found" << std::endl;
 		return false;
 	}
