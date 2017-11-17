@@ -100,6 +100,7 @@ namespace SteerLib
 		AStarPlannerNode extractMin();
 		void DeleteMin();
 		bool isEmpty();
+		void clear();
 	};
 
 	
@@ -144,15 +145,26 @@ namespace SteerLib
 			bool computePath(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::SpatialDataBaseInterface * _gSpatialDatabase, bool append_to_path = false);
 
 			// Customized Variables and Functions
-			MinHeap fringe = MinHeap();
+			MinHeap openList = MinHeap();
 
 			std::unordered_set<int> closedList;
 			std::unordered_map<int, double> fValues;
 			std::unordered_map<int, int> parentList;
 
+			// Weighted AStar
 			bool weightedAStar(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::SpatialDataBaseInterface * _gSpatialDatabase);
 			void generateNodes(AStarPlannerNode curr, Util::Point goal);
 			double computeHValue(Util::Point curr, Util::Point goal);
+
+			// ARA
+			void ImprovePath(std::vector<AStarPlannerNode*> &openSet, std::vector<AStarPlannerNode*> &closedSet, std::vector<AStarPlannerNode*> &inconsistentList, std::vector<AStarPlannerNode*> &path, Util::Point goal, AStarPlannerNode* &goalState, double inflationFactor);
+			void storePath(std::vector<AStarPlannerNode*> &path, std::vector<Util::Point>& agent_path, Util::Point goal);
+			bool ARAStar(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, bool append_to_path);
+			void resetList(std::vector<SteerLib::AStarPlannerNode*> &o, Util::Point p);
+			double getMin(std::vector<AStarPlannerNode*> openList, std::vector<AStarPlannerNode*> inconsistentList, Util::Point goal);
+			double getMinFromOpen(std::vector<AStarPlannerNode*> openList, Util::Point goal);
+			std::vector<AStarPlannerNode*> getSuccessors(AStarPlannerNode* currentNode, Util::Point goal);
+			bool checkSuccessor(AStarPlannerNode* parentNode, Util::Point location, std::vector<AStarPlannerNode*> &successors, Util::Point goal);
 
 		private:
 			SteerLib::SpatialDataBaseInterface * gSpatialDatabase;

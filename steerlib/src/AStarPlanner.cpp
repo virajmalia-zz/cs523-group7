@@ -22,11 +22,12 @@
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
-// Define which AStar to use: AStar, ARA, AD
+// Define which AStar to use: AStar, ARA
 #define SEARCH AStar
 
 // Define which heuristic to use: EUC or MAN
 #define MODE EUC
+
 #define HWEIGHT 1.0f
 
 namespace SteerLib
@@ -131,6 +132,11 @@ namespace SteerLib
 		return _vector.empty();
 	}
 
+	void MinHeap::clear()
+	{
+		_vector.clear();
+	}
+
 
 	bool AStarPlanner::canBeTraversed ( int id ) 
 	{
@@ -183,16 +189,18 @@ namespace SteerLib
 		switch (SEARCH)
 		{
 		case AStar: result = weightedAStar(agent_path, start, goal, gSpatialDatabase); break;
-		case ARA: result = false; break;
+		case ARA: result = ARAStar(agent_path, start, goal, append_to_path); break;
 		case AD: result = false; break;
 		}
 
 		return result;
 	}
 
+	// Weighted AStar Implementation:
 
 	bool AStarPlanner::weightedAStar(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::SpatialDataBaseInterface * _gSpatialDatabase)
 	{
+
 		closedList.clear();
 		parentList.clear();
 		fValues.clear();
@@ -204,16 +212,16 @@ namespace SteerLib
 		start = getPointFromGridIndex(gSpatialDatabase->getCellIndexFromLocation(start));
 		goal = getPointFromGridIndex(gSpatialDatabase->getCellIndexFromLocation(goal));
 
-		// Add startPoint to the fringe
+		// Add startPoint to the openList
 		AStarPlannerNode startPoint = AStarPlannerNode(start, 0.0f, computeHValue(start, goal), nullptr);
-		fringe.insertKey(startPoint);
+		openList.insertKey(startPoint);
 
 		// Counter for personal use
 		int counter = 0;
 
-		while (!fringe.isEmpty())
+		while (!openList.isEmpty())
 		{
-			AStarPlannerNode curr = fringe.extractMin();
+			AStarPlannerNode curr = openList.extractMin();
 
 			// Reach Goal
 			if (curr.point == goal)
@@ -229,11 +237,10 @@ namespace SteerLib
 				agent_path.push_back(start);
 				std::reverse(agent_path.begin(), agent_path.end());
 
-				//std::cout << "Path found with " << counter << " expands" << std::endl;
+				std::cout << "Path found with " << counter << " expands, path length is " << agent_path.size() << std::endl;
 				return true;
 			}
-
-			// Expand min from fringe 
+			// Expand min from openList 
 			generateNodes(curr, goal);
 			counter++;
 		}
@@ -278,7 +285,7 @@ namespace SteerLib
 					// First time reaching this cell
 					if (fValues.find(nb_index) == fValues.end())
 					{
-						fValues.insert({nb_index, 99999.9f});
+						fValues.insert({nb_index, DBL_MAX});
 						parentList.insert({ nb_index, nb_index });
 					}
 
@@ -298,15 +305,15 @@ namespace SteerLib
 
 					double nb_f = nb_g + nb_h;
 
-					// Add to fringe
+					// Add to openList
 					if (nb_f < fValues[nb_index])
 					{
 						fValues[nb_index] = nb_f;
 						AStarPlannerNode nb_Point = AStarPlannerNode(nb_pos, nb_g, nb_f, &curr);
-						fringe.insertKey(nb_Point);
+						openList.insertKey(nb_Point);
 						parentList[nb_index] = curr_index;
 
-						//printf("Fringe Add: (%f, %f) f: %f g: %f\n", nb_pos.x, nb_pos.z, nb_f, nb_g);
+						//printf("openList Add: (%f, %f) f: %f g: %f\n", nb_pos.x, nb_pos.z, nb_f, nb_g);
 					}
 				}
 			}
@@ -323,5 +330,245 @@ namespace SteerLib
 		// Manhattan Distance
 		case MAN: return (std::abs(curr.x - goal.x) + std::abs(curr.z - goal.z)) * HWEIGHT; break;
 		}	
+	}
+
+
+	// ARA Implementation:
+
+	bool AStarPlanner::ARAStar(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, bool append_to_path)
+	{
+		double epsilon = 500.0;
+		double timeLimit = 30.0;
+		double decrementFactor = 200.0;
+
+		time_t startTimestamp;
+		time_t endTimeStamp;
+
+
+		startTimestamp = time(NULL);
+
+
+		std::vector<SteerLib::AStarPlannerNode*> openList, inconsList, closedList_ARA, pathList;
+
+		//Goal state retrieved
+		SteerLib::AStarPlannerNode* goalState = new SteerLib::AStarPlannerNode(goal, DBL_MAX, DBL_MAX, NULL);
+
+
+		//Adding start state to openlist 
+		openList.push_back(new SteerLib::AStarPlannerNode(start, 0, 0, NULL));
+
+		//Calling ImprovePath subfunction 
+		ImprovePath(openList, closedList_ARA, inconsList, pathList, goal, goalState, epsilon);
+		//std::cout << "\nAfter IP\n";
+		if (pathList.empty())
+		{
+			std::cout << "\nNo path exists\n";
+			return false;
+		}
+		//std::cout << "\nBefore epsilon new\n";
+
+		double min1 = (double)(epsilon>goalState->g) ? goalState->g : epsilon;
+		double min2 = (double)getMin(openList, inconsList, goal);
+		//std::cout << "\nMIN1 " << typeid(min2).name() << std::endl;
+		//std::cout << "\nMIN2" << min2<<std::endl;
+		double epsilonNew = 0.00;
+		epsilonNew = min1 / min2;
+		//std::cout << "\nNew epsilon is " << epsilonNew << std::endl;
+		endTimeStamp = time(NULL);
+		//std::cout << (timeLimit > difftime(endTimeStamp, startTimestamp)) << std::endl;
+		while (epsilonNew > 1 && timeLimit > difftime(endTimeStamp, startTimestamp))
+		{
+			//std::cout << "\nWhile ep > 1 \n";
+			epsilon -= decrementFactor;
+
+			//Checking if epsilon is invalid
+			if (epsilon < 1)
+				epsilon = 1;
+
+			//Inconsistent to open
+			while (!inconsList.empty())
+			{
+				SteerLib::AStarPlannerNode* node = inconsList.at(0);
+
+				inconsList.pop_back();
+				openList.push_back(node);
+			}
+			//std::cout << "\nFor openlist\n" << std::endl;
+			//update priorities for all states (a) in open
+			for (int a = 0; a < openList.size(); a++)
+			{
+				openList.at(a)->f = openList.at(a)->g + epsilon*distanceBetween(openList.at(a)->point, goal);
+			}
+
+			pathList.clear();
+			closedList.clear();
+			resetList(openList, start);
+			ImprovePath(openList, closedList_ARA, inconsList, pathList, goal, goalState, epsilon);
+
+			if (epsilon == 1)
+			{
+				std::cout << "\Optimal solution\n" << std::endl;
+				break;
+			}
+			epsilonNew = min(epsilon, goalState->g) / getMin(openList, inconsList, goal);
+			//std::cout << "\nNew epsilon is "<< epsilonNew << std::endl;
+		}
+		storePath(pathList, agent_path, goal);
+
+		return true;
+
+	}
+	double AStarPlanner::getMin(std::vector<SteerLib::AStarPlannerNode*> openList,
+		std::vector<SteerLib::AStarPlannerNode*> inconsList, Util::Point goal)
+	{
+		double min = DBL_MAX;
+
+		for (int a = 0; a < openList.size(); a++)
+		{
+			if ((openList.at(a)->g + Util::distanceBetween(openList.at(a)->point, goal)) < min)
+				min = openList.at(a)->g + Util::distanceBetween(openList.at(a)->point, goal);
+		}
+		for (int a = 0; a < inconsList.size(); a++)
+		{
+			if ((inconsList.at(a)->g + Util::distanceBetween(inconsList.at(a)->point, goal)) < min)
+				min = inconsList.at(a)->g + Util::distanceBetween(inconsList.at(a)->point, goal);
+		}
+		//std::cout << "\nRETURN"<<min;
+		return min;
+
+	}
+	double AStarPlanner::getMinFromOpen(std::vector<SteerLib::AStarPlannerNode*> openList, Util::Point goal)
+	{
+		double min = DBL_MAX;
+
+		for (int a = 0; a < openList.size(); a++)
+		{
+			if ((openList.at(a)->g + Util::distanceBetween(openList.at(a)->point, goal)) < min)
+				min = openList.at(a)->g + Util::distanceBetween(openList.at(a)->point, goal);
+		}
+		return min;
+
+	}
+
+	bool ifExists(AStarPlannerNode* currentNode, std::vector<AStarPlannerNode*> list) {
+		for (int i = 0; i < list.size(); i++) {
+			if (currentNode->point == list[i]->point) {
+				return true;
+			}
+		}
+		return false;
+	}
+	void AStarPlanner::storePath(std::vector<SteerLib::AStarPlannerNode*> &pathList, std::vector<Util::Point>& agent_path, Util::Point goal)
+	{
+		for (int i = pathList.size() - 1; i > 0; i--) {
+			agent_path.push_back(pathList[i]->point);
+		}
+		agent_path.push_back(goal);
+	}
+	int getLowestFIndex(std::vector<AStarPlannerNode*> list) {
+		int returnIndex;
+		double bestFValue = DBL_MAX;
+
+		for (int i = 0; i < list.size(); i++) {
+			if (list[i]->f <= bestFValue) {
+				bestFValue = list[i]->f;
+				returnIndex = i;
+			}
+		}
+		return returnIndex;
+	}
+
+	bool AStarPlanner::checkSuccessor(AStarPlannerNode* parentNode, Util::Point location, std::vector<AStarPlannerNode*> &successors, Util::Point goal) {
+		if (!canBeTraversed(gSpatialDatabase->getCellIndexFromLocation(location))) {
+			return false;
+		}
+
+		AStarPlannerNode* successorNode = new AStarPlannerNode(location, parentNode->g + distanceBetween(parentNode->point, location), double(0), parentNode);
+		successors.push_back(successorNode);
+		return true;
+	}
+
+	std::vector<AStarPlannerNode*> AStarPlanner::getSuccessors(AStarPlannerNode* currentNode, Util::Point goal) {
+		std::vector<AStarPlannerNode*> successors;
+
+		int size = 3;
+		int possibilities[3] = { -1,0,1 };
+		for (int a = 0; a < size; a++)
+		{
+			for (int b = 0; b < size; b++)
+			{
+				if (possibilities[a] == 0 && possibilities[b] == 0)
+				{
+					continue;
+				}
+				checkSuccessor(currentNode,
+					Util::Point(currentNode->point.x + possibilities[a], currentNode->point.y, currentNode->point.z + possibilities[b]),
+					successors, goal);
+			}
+		}
+
+		return successors;
+	}
+	void AStarPlanner::ImprovePath(std::vector<SteerLib::AStarPlannerNode*> &openList,
+		std::vector<SteerLib::AStarPlannerNode*> &closedList_ARA,
+		std::vector<SteerLib::AStarPlannerNode*> &inconsList,
+		std::vector<SteerLib::AStarPlannerNode*> &pathList, Util::Point goal,
+		SteerLib::AStarPlannerNode* &goalState, double epsilon)
+	{
+
+		//std::cout << "\nIn improved path!\n";
+		while (openList.size() != 0) {
+			//std::cout <<"\n"<< openList.size();
+			//std::cout << "\nWhile in improve";
+			//State with lowest F value
+			int index = getLowestFIndex(openList);
+
+			AStarPlannerNode* current = openList[index];
+
+			openList.erase(openList.begin() + index);
+			closedList_ARA.push_back(current);
+
+
+			if (current->point == goal) {
+				std::cout << "Reached goal!\n";
+				AStarPlannerNode* traceBack = current;
+				while (traceBack != NULL) {
+					pathList.push_back(traceBack);
+					traceBack = traceBack->parent;
+				}
+
+				goalState->g = current->g;
+				return;
+			}
+
+
+			std::vector<AStarPlannerNode*> successors = getSuccessors(current, goal);
+
+			for (int i = 0; i < successors.size(); i++) {
+
+				//if successor not visited
+				if (!ifExists(successors[i], closedList_ARA)) {
+					successors[i]->g = DBL_MAX;
+				}
+				//calc the temporary g 
+				double temp = current->g + distanceBetween(current->point, successors[i]->point);
+				//adding successors to openList with F values
+				if (temp <= successors[i]->g) {
+					successors[i]->g = temp;
+					successors[i]->f = successors[i]->g + epsilon*distanceBetween(successors[i]->point, goal);
+					if (!ifExists(successors[i], openList)) {
+						openList.push_back(successors[i]);
+					}
+					else {
+						inconsList.push_back(successors[i]);
+					}
+				}
+			}
+		}
+	}
+	void AStarPlanner::resetList(std::vector<SteerLib::AStarPlannerNode*> &list, Util::Point p)
+	{
+		list.clear();
+		list.push_back(new SteerLib::AStarPlannerNode(p, 0, 0, NULL));
 	}
 }
