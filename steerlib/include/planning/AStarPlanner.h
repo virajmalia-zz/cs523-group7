@@ -33,15 +33,15 @@ namespace SteerLib
 			double f;
 			double g;
 			double rhs;
-			std::vector<double> key;
+			std::tuple<double, double> key;
 			Util::Point point;
 			AStarPlannerNode* parent;
-			AStarPlannerNode(Util::Point _point, double _g, double _f, double _rhs, AStarPlannerNode* _parent)
+			AStarPlannerNode(Util::Point _point, double _g, double _f, AStarPlannerNode* _parent)
 			{
 				f = _f;
 				point = _point;
 				g = _g;
-				rhs = _rhs;
+				rhs = 0;
 				parent = _parent;
 			}
 
@@ -98,15 +98,17 @@ namespace SteerLib
 				append_to_path : An optional argument to append to agent_path instead of overwriting it.
 			*/
 
-			std::vector<double> key(AStarPlannerNode *s);
-			void updateStateAD(AStarPlannerNode *s);
-			void computeShortestPathAD();
-			bool KeyAlessthanB(AStarPlannerNode *s, AStarPlannerNode *s2);
-			double AStarPlanner::euclidean_distance(Util::Point a, Util::Point b);
-			std::vector<Util::Point> AStarPlanner::trace(AStarPlannerNode* node);
-			std::vector<AStarPlannerNode*> AStarPlanner::getNeighbors(AStarPlannerNode* a);
-			bool AStarPlanner::addNeighborIfGood(AStarPlannerNode* parent, std::vector<AStarPlannerNode*> &neighbors, Util::Point point);
+			std::tuple<double, double> AStarPlanner::key(AStarPlannerNode* startNode, AStarPlannerNode* node);
+			void AStarPlanner::computeOrImprovePath(std::vector<AStarPlannerNode*> openList, std::vector<AStarPlannerNode*> closedList, std::vector<AStarPlannerNode*> inconsList, AStarPlannerNode* startNode, AStarPlannerNode* goal);
+			bool AStarPlanner::ADStarUpdate(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, bool append_to_path, AStarPlannerNode* goalNode);
+			bool AStarPlanner::UpdateState(AStarPlannerNode* startNode, AStarPlannerNode* s, AStarPlannerNode* goal, std::vector<AStarPlannerNode*> openList, std::vector<AStarPlannerNode*> closedList, std::vector<AStarPlannerNode*> inconsList);
+			std::vector<AStarPlannerNode*> AStarPlanner::getSuccessors(AStarPlannerNode* currentNode, Util::Point goal);
+			bool AStarPlanner::checkAddSuccessor(AStarPlannerNode* parentNode, Util::Point location, std::vector<AStarPlannerNode*> &successors, Util::Point goal);
+			bool AStarPlanner::canBeTraversed1(Util::Point point);
+
+
 			bool computePath(std::vector<Util::Point>& agent_path, Util::Point start, Util::Point goal, SteerLib::SpatialDataBaseInterface * _gSpatialDatabase, bool append_to_path = false);
+
 		private:
 			SteerLib::SpatialDataBaseInterface * gSpatialDatabase;
 	};
